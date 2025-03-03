@@ -1,0 +1,54 @@
+server:
+  port: 8080  # API Gateway port
+
+spring:
+  application:
+    name: api-gateway
+
+  cloud:
+    gateway:
+      routes:
+        # ✅ Publicly accessible endpoints (No JWT required)
+        - id: user-service
+          uri: lb://USER-SERVICE
+          predicates:
+            - Path=/auth/**
+        # ✅ User Service Routes (ADD THIS)
+        - id: user-service-users
+          uri: lb://USER-SERVICE
+          predicates:
+            - Path=/api/users/**
+
+
+        # ✅ Secured Product Service Routes
+        - id: product-service
+          uri: lb://PRODUCT-SERVICE
+          predicates:
+            - Path=/api/products/**
+        - id: debug-service
+          uri: lb://PRODUCT-SERVICE
+          predicates:
+          - Path=/debug/**
+
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  tracing:
+    sampling:
+      probability: 1.0  # 100% tracing
+  # Zipkin server URL
+  zipkin:
+    tracing:
+      endpoint: http://localhost:9411/api/v2/spans
+logging:
+  level:
+    org.springframework.web: DEBUG
+    org.springframework.cloud.gateway: DEBUG
+    io.micrometer.tracing: DEBUG
+
+
+
+
